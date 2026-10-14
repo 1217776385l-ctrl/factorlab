@@ -1,0 +1,16 @@
+{
+ "best": {
+  "state": "vol",
+  "thr": 0.6,
+  "defense": "half",
+  "d3": false,
+  "annual": 0.1976,
+  "sharpe": 0.786,
+  "mdd": -0.3174,
+  "calmar": 0.623,
+  "excess": 0.185,
+  "oos_annual": 0.5605,
+  "oos_mdd": -0.2273
+ },
+ "n": 20
+}

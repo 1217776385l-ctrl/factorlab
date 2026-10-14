@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>因子终端 · Factor Lab Terminal</title>
+<!-- Visualization powered by Apache ECharts (echarts.min.js, local copy) - Apache-2.0 License -->
+<script src="echarts.min.js"></script>
+<script src="data.js"></script>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#12161f; --panel2:#171c27; --line:#232a38;
+    --txt:#d7dce4; --sub:#8b93a3; --dim:#5b6373;
+    --gold:#d9b36c; --up:#e05d5d; --down:#3fa87f; --accent:#5aa9e6; --violet:#a78bfa;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
+  .num{font-family:"SF Mono","JetBrains Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+  ::-webkit-scrollbar{height:8px;width:8px}::-webkit-scrollbar-thumb{background:#2a3242;border-radius:4px}
+
+  header{display:flex;align-items:center;gap:18px;padding:14px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#12161f,#0d1017)}
+  .logo{font-size:17px;font-weight:700;letter-spacing:1px}
+  .logo b{color:var(--gold)}
+  .logo .en{color:var(--dim);font-size:11px;letter-spacing:3px;display:block;margin-top:1px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+  .pill{padding:7px 16px;border:1px solid var(--line);border-radius:18px;cursor:pointer;color:var(--sub);background:transparent;transition:.15s;font-size:13px}
+  .pill:hover{border-color:var(--gold);color:var(--txt)}
+  .pill.on{background:linear-gradient(135deg,#2a2416,#1d1a10);border-color:var(--gold);color:var(--gold);font-weight:600}
+  .meta{text-align:right;color:var(--dim);font-size:11px;line-height:1.6}
+  .meta b{color:var(--sub)}
+
+  .wrap{max-width:1440px;margin:0 auto;padding:18px 22px 30px}
+  .cards{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
+  .card::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--line)}
+  .card.hot::after{background:var(--gold)}
+  .card .k{color:var(--sub);font-size:11px;letter-spacing:.5px;margin-bottom:6px}
+  .card .v{font-size:21px;font-weight:600}
+  .card .s{font-size:11px;color:var(--dim);margin-top:3px}
+  .pos{color:var(--up)} .neg{color:var(--down)}
+
+  .grid{display:grid;gap:12px}
+  .g-main{grid-template-columns:1fr 340px}
+  .g-mid{grid-template-columns:1fr 1fr}
+  .g-bot{grid-template-columns:1.35fr 1fr}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .box h3{font-size:13px;font-weight:600;color:var(--sub);letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+  .box h3 .hint{font-size:11px;color:var(--dim);font-weight:400}
+  .chart{width:100%}
+  #navChart{height:360px} #ddChart{height:120px}
+  #annChart{height:492px} #icChart{height:300px} #layerChart{height:300px}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{color:var(--dim);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-weight:500;font-size:11px;letter-spacing:.5px}
+  td{padding:7px 8px;border-bottom:1px solid #1a2030}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#161b26}
+  .tag{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11px}
+  .tag.g{background:#1d2416;color:#9fbf6b;border:1px solid #2e3a22}
+  .tag.y{background:#262115;color:#d9b36c;border:1px solid #3a3222}
+  .tag.r{background:#2a1a1a;color:#d97b7b;border:1px solid #3a2525}
+
+  .notes li{color:var(--sub);font-size:12px;line-height:1.8;margin-left:18px}
+  .params{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:12px;color:var(--sub)}
+  .params b{color:var(--txt);font-weight:500}
+
+  footer{margin-top:26px;padding:22px 0 6px;border-top:1px solid var(--line);text-align:center}
+  .sign{font-family:"Snell Roundhand","Brush Script MT",cursive;font-size:26px;color:var(--gold);opacity:.92}
+  .cp{color:var(--dim);font-size:11px;letter-spacing:1px;margin-top:4px}
+  @media(max-width:1100px){.cards{grid-template-columns:repeat(4,1fr)}.g-main,.g-mid,.g-bot{grid-template-columns:1fr}}
+  input[type=date]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:12px;color-scheme:dark;cursor:pointer}
+  input[type=date]:hover{border-color:var(--gold)}
+  .dwrap{display:flex;align-items:center;gap:6px}
+  .dwrap label{color:var(--dim);font-size:11px;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">因子<b>终端</b><span class="en">FACTOR LAB TERMINAL</span></div>
+  <div class="pills" id="pills"></div>
+  <div class="meta">数据 <b>A股全市场日线</b> · 成本 <b>双边0.2%</b><br>更新 <b id="genTime">—</b></div>
+</header>
+
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+
+  <div class="grid g-main">
+    <div class="box">
+      <h3>净值曲线 <span class="hint" id="navHint"></span>
+        <span class="dwrap" style="margin-left:auto"><label for="viewStart">起始日期</label><input type="date" id="viewStart" title="选择日期后,全页面只展示该日期之后的表现,并以此为基期重新归一"></span>
+      </h3>
+      <div id="navChart" class="chart"></div>
+      <div id="ddChart" class="chart"></div>
+    </div>
+    <div class="box">
+      <h3>年度收益 % <span class="hint">红盈 绿亏</span></h3>
+      <div id="annChart" class="chart"></div>
+    </div>
+  </div>
+
+  <div class="grid g-mid" style="margin-top:12px" id="midRow">
+    <div class="box"><h3>月度 Rank IC <span class="hint" id="icHint">20日前瞻收益 · Spearman</span></h3><div id="icChart" class="chart"></div></div>
+    <div class="box"><h3>因子分层净值 <span class="hint">Q1最高分组 → Q5最低分组</span></h3><div id="layerChart" class="chart"></div></div>
+  </div>
+
+  <div class="grid g-bot" style="margin-top:12px">
+    <div class="box">
+      <h3>最新一期持仓 <span class="hint" id="holdHint"></span></h3>
+      <div style="max-height:320px;overflow:auto"><table id="holdTable"></table></div>
+    </div>
+    <div class="box">
+      <h3>策略参数与诚实声明</h3>
+      <div class="params" id="params" style="margin-bottom:12px"></div>
+      <ul class="notes" id="notes"></ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="sign">Made by LYU Minglei</div>
+  <div class="cp">FACTOR LAB TERMINAL © 2026 LYU Minglei · All Rights Reserved</div>
+</footer>
+
+<script>
+const fmtPct = (x, d=1) => (x==null||isNaN(x)) ? '—' : (x*100).toFixed(d)+'%';
+const cls = x => x>=0 ? 'pos' : 'neg';
+const d2s = d => d.slice(0,10);
+
+const AXIS = {axisLine:{lineStyle:{color:'#232a38'}},axisLabel:{color:'#8b93a3',fontSize:11},splitLine:{lineStyle:{color:'#1a2030'}}};
+const baseGrid = {left:56,right:20,top:16,bottom:38};
+
+let cur = 0, charts = {}, viewStart = null;
+function initChart(id){ if(!charts[id]) charts[id] = echarts.init(document.getElementById(id)); return charts[id]; }
+window.addEventListener('resize', ()=>Object.values(charts).forEach(c=>c.resize()));
+
+// 日期切片:从 viewStart 起截取,净值/分层重新归一,指标重算
+function sliceView(r){
+  if(!viewStart) return r;
+  const vs = viewStart;
+  const idxFrom = arr => arr.findIndex(d => d >= vs);
+  const out = JSON.parse(JSON.stringify(r));
+  const ni = idxFrom(r.nav.dates);
+  if(ni < 0) return r;
+  const nd = r.nav.dates.slice(ni), ns = r.nav.strategy.slice(ni);
+  const base = ns[0] || 1;
+  out.nav = {dates: nd, strategy: ns.map(v=>+(v/base).toFixed(4))};
+  if(r.nav.benchmark){
+    const nb = r.nav.benchmark.slice(ni), bbase = nb[0] || 1;
+    out.nav.benchmark = nb.map(v=>+(v/bbase).toFixed(4));
+  }
+  // 指标重算
+  const nav = out.nav.strategy, bnav = out.nav.benchmark;
+  const rets = nav.slice(1).map((v,i)=> v/nav[i]-1);
+  const yrs = Math.max((new Date(nd[nd.length-1]) - new Date(nd[0])) / 3.15576e10, 1/365);
+  const mean = rets.reduce((a,b)=>a+b,0)/rets.length;
+  const sd = Math.sqrt(rets.reduce((a,b)=>a+(b-mean)**2,0)/rets.length);
+  const ann = nav[nav.length-1] ** (1/yrs) - 1;
+  const vol = sd * Math.sqrt(252);
+  let peak=-1e9, mdd=0;
+  nav.forEach(v=>{peak=Math.max(peak,v); mdd=Math.min(mdd, v/peak-1);});
+  out.metrics = {...r.metrics,
+    annual_return: ann, total_return: nav[nav.length-1]-1,
+    sharpe: vol>0 ? ann/vol : 0, max_drawdown: mdd,
+    calmar: mdd<0 ? ann/Math.abs(mdd) : 0,
+    years: +yrs.toFixed(2),
+    period_start: nd[0], period_end: nd[nd.length-1],
+    win_rate_period: rets.filter(x=>x>0).length/rets.length};
+  if(bnav){
+    const brets = bnav.slice(1).map((v,i)=> v/bnav[i]-1);
+    const bmean = brets.reduce((a,b)=>a+b,0)/brets.length;
+    const bsd = Math.sqrt(brets.reduce((a,b)=>a+(b-bmean)**2,0)/brets.length);
+    const bann = bnav[bnav.length-1] ** (1/yrs) - 1;
+    out.metrics.bench_annual = bann;
+    out.metrics.excess_annual = ann - bann;
+    const exc = rets.map((x,i)=> x - brets[i]);
+    const esd = Math.sqrt(exc.reduce((a,b)=>a+(b-exc.reduce((c,d)=>c+d,0)/exc.length)**2,0)/exc.length);
+    out.metrics.info_ratio = esd>0 ? (exc.reduce((a,b)=>a+b,0)/exc.length)/esd*Math.sqrt(252) : 0;
+  }
+  // 年度/IC/分层切片
+  out.annual = (r.annual||[]).filter(a => String(a.year) >= vs.slice(0,4));
+  if(r.ic && r.ic.dates){
+    const ii = idxFrom(r.ic.dates);
+    if(ii > 0){ out.ic = {...r.ic, dates: r.ic.dates.slice(ii), values: r.ic.values.slice(ii)}; }
+  }
+  if(r.layers && r.layers.dates){
+    const li = idxFrom(r.layers.dates);
+    if(li > 0){
+      const series = r.layers.series.map(s => { const seg = s.slice(li), b0 = seg[0]||1; return seg.map(v=>+(v/b0).toFixed(4)); });
+      out.layers = {...r.layers, dates: r.layers.dates.slice(li), series};
+    }
+  }
+  out.meta = {...r.meta, period_start: nd[0], period_end: nd[nd.length-1]};
+  return out;
+}
+
+function renderPills(){
+  const el = document.getElementById('pills');
+  el.innerHTML = REPORTS.map((r,i)=>`<button class="pill ${i===cur?'on':''}" onclick="switchTo(${i})">${r.meta.name}</button>`).join('');
+}
+function switchTo(i){ cur=i; renderAll(); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.getElementById('viewStart');
+  if(inp && typeof REPORTS !== 'undefined' && REPORTS.length){
+    inp.min = REPORTS[0].nav.dates[0].slice(0,10);
+    inp.max = REPORTS[0].nav.dates[REPORTS[0].nav.dates.length-1].slice(0,10);
+    inp.addEventListener('change', ()=>{ viewStart = inp.value || null; renderAll(); });
+  }
+});
+
+function renderCards(r){
+  const m = r.metrics;
+  const cards = [
+    ['年化收益', fmtPct(m.annual_return), m.bench_annual!=null?`基准 ${fmtPct(m.bench_annual)}`:'', m.annual_return],
+    ['年化超额', m.excess_annual!=null?fmtPct(m.excess_annual):'—', 'vs 基准', m.excess_annual],
+    ['Sharpe', (m.sharpe??0).toFixed(2), '年化', m.sharpe],
+    ['最大回撤', fmtPct(m.max_drawdown), '区间', m.max_drawdown],
+    ['Calmar', (m.calmar??0).toFixed(2), '年化/回撤', m.calmar],
+    ['信息比率', m.info_ratio!=null?m.info_ratio.toFixed(2):'—', '超额IR', m.info_ratio],
+    ['月胜率', m.win_rate_period!=null?fmtPct(m.win_rate_period):'—', '日频', m.win_rate_period],
+    ['月均换手', m.avg_turnover!=null?fmtPct(m.avg_turnover):'—', `${m.n_trades??'—'} 笔成交`, null],
+  ];
+  document.getElementById('cards').innerHTML = cards.map(([k,v,s,x],i)=>
+    `<div class="card ${i<2?'hot':''}"><div class="k">${k}</div><div class="v num ${x!=null?cls(x):''}">${v}</div><div class="s">${s||''}</div></div>`).join('');
+  document.getElementById('genTime').textContent = r.meta.generated;
+}
+
+function renderNav(r){
+  const nav = r.nav, hasB = nav.benchmark && nav.benchmark.length;
+  const dates = nav.dates.map(d2s);
+  const s = nav.strategy;
+  // 累计超额线
+  let exc = null;
+  if (hasB) exc = s.map((v,i)=> v/(nav.benchmark[i]||1));
+  initChart('navChart').setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#171c27',borderColor:'#232a38',textStyle:{color:'#d7dce4',fontSize:12},
+      valueFormatter: v=>(v*1).toFixed(3)},
+    legend:{data:['策略','基准','相对净值'],textStyle:{color:'#8b93a3',fontSize:11},top:0,icon:'roundRect',itemWidth:14,itemHeight:3},
+    grid:{...baseGrid,top:28},
+    xAxis:{type:'category',data:dates,...AXIS},
+    yAxis:[{type:'value',scale:true,...AXIS,axisLabel:{color:'#8b93a3',fontSize:11,formatter:v=>v.toFixed(2)}},
+           {type:'value',scale:true,...AXIS,splitLine:{show:false},axisLabel:{color:'#3d4657',fontSize:10,formatter:v=>v.toFixed(1)}}],
+    dataZoom:[{type:'inside'},{type:'slider',height:16,bottom:6,borderColor:'#232a38',backgroundColor:'#0d1017',fillerColor:'rgba(217,179,108,.12)',textStyle:{color:'#5b6373'}}],
+    series:[
+      {name:'策略',type:'line',data:s,showSymbol:false,lineStyle:{width:1.8,color:'#d9b36c'},itemStyle:{color:'#d9b36c'}},
+      hasB?{name:'基准',type:'line',data:nav.benchmark,showSymbol:false,lineStyle:{width:1.2,color:'#5b6373'},itemStyle:{color:'#5b6373'}}:null,
+      hasB?{name:'相对净值',type:'line',data:exc,showSymbol:false,lineStyle:{width:1.2,type:'dashed',color:'#5aa9e6'},itemStyle:{color:'#5aa9e6'},yAxisIndex:1}:null,
+    ].filter(Boolean),
+    animation:false
+  },true);
+  // 回撤
+  let peak=-1e9; const dd = s.map(v=>{peak=Math.max(peak,v);return v/peak-1;});
+  initChart('ddChart').setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#171c27',borderColor:'#232a38',textStyle:{color:'#d7dce4'},valueFormatter:v=>(v*100).toFixed(1)+'%'},
+    grid:{left:56,right:20,top:8,bottom:22},
+    xAxis:{type:'category',data:dates,...AXIS,axisLabel:{show:false}},
+    yAxis:{type:'value',...AXIS,axisLabel:{color:'#5b6373',fontSize:10,formatter:v=>(v*100).toFixed(0)+'%'},max:0},
+    series:[{type:'line',data:dd,showSymbol:false,lineStyle:{width:1,color:'#e05d5d'},itemStyle:{color:'#e05d5d'},
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(224,93,93,.28)'},{offset:1,color:'rgba(224,93,93,0)'}]}}}],
+    animation:false
+  },true);
+  document.getElementById('navHint').textContent = `${r.meta.period_start} → ${r.meta.period_end} · ${r.meta.rebalance}调仓 · Top${r.meta.top_n}`;
+}
+
+function renderAnnual(r){
+  const a = r.annual||[];
+  const years = a.map(x=>x.year+'');
+  initChart('annChart').setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#171c27',borderColor:'#232a38',textStyle:{color:'#d7dce4'},valueFormatter:v=>v==null?'—':v.toFixed(1)+'%'},
+    legend:{data:['策略','基准','超额'],textStyle:{color:'#8b93a3',fontSize:11},top:0,icon:'roundRect',itemWidth:14,itemHeight:3},
+    grid:{left:44,right:12,top:28,bottom:24},
+    xAxis:{type:'category',data:years,...AXIS},
+    yAxis:{type:'value',...AXIS,axisLabel:{color:'#8b93a3',fontSize:10}},
+    series:[
+      {name:'策略',type:'bar',data:a.map(x=>x.strategy==null?null:+(x.strategy*100).toFixed(1)),itemStyle:{color:p=>p.value>=0?'#c25656':'#37806b',borderRadius:2},barMaxWidth:12},
+      {name:'基准',type:'bar',data:a.map(x=>x.benchmark==null?null:+(x.benchmark*100).toFixed(1)),itemStyle:{color:'#3a4152',borderRadius:2},barMaxWidth:12},
+      {name:'超额',type:'scatter',data:a.map(x=>x.excess==null?null:+(x.excess*100).toFixed(1)),symbolSize:7,itemStyle:{color:'#d9b36c'}}
+    ],
+    animation:false
+  },true);
+}
+
+function renderIC(r){
+  if(!r.ic || !r.ic.dates || !r.ic.dates.length){ document.getElementById('midRow').style.display='none'; return; }
+  document.getElementById('midRow').style.display='grid';
+  const dates = r.ic.dates.map(d2s);
+  const cum = []; let s=0; r.ic.values.forEach(v=>{s+=v;cum.push(+s.toFixed(3))});
+  initChart('icChart').setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#171c27',borderColor:'#232a38',textStyle:{color:'#d7dce4'},valueFormatter:v=>v==null?'':(+v).toFixed(3)},
+    legend:{data:['RankIC','累计IC'],textStyle:{color:'#8b93a3',fontSize:11},top:0,icon:'roundRect',itemWidth:14,itemHeight:3},
+    grid:{left:52,right:48,top:28,bottom:24},
+    xAxis:{type:'category',data:dates,...AXIS,axisLabel:{color:'#5b6373',fontSize:10}},
+    yAxis:[{type:'value',...AXIS,axisLabel:{color:'#5b6373',fontSize:10,formatter:v=>(+v).toFixed(2)}},
+           {type:'value',...AXIS,splitLine:{show:false},axisLabel:{color:'#5b6373',fontSize:10}}],
+    series:[
+      {name:'RankIC',type:'bar',data:r.ic.values,itemStyle:{color:p=>p.value>=0?'rgba(224,93,93,.75)':'rgba(63,168,127,.75)'},barMaxWidth:7},
+      {name:'累计IC',type:'line',data:cum,yAxisIndex:1,showSymbol:false,lineStyle:{width:1.4,color:'#a78bfa'},itemStyle:{color:'#a78bfa'}}
+    ],
+    animation:false
+  },true);
+  const m = r.ic;
+  document.getElementById('icHint').textContent = `均值 ${(m.mean??0).toFixed(3)} · ICIR ${(m.icir??0).toFixed(2)} · t=${(m.t??0).toFixed(1)} · ${m.n}期`;
+}
+
+function renderLayers(r){
+  if(!r.layers || !r.layers.dates || !r.layers.dates.length){ document.getElementById('layerChart').innerHTML='<div style="color:#5b6373;font-size:12px;padding:30px 0;text-align:center">该策略未提供分层数据</div>'; return; }
+  const dates = r.layers.dates.map(d2s);
+  const colors = ['#d9b36c','#a78bfa','#5aa9e6','#8b93a3','#3fa87f'];
+  initChart('layerChart').setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#171c27',borderColor:'#232a38',textStyle:{color:'#d7dce4'},valueFormatter:v=>(+v).toFixed(3)},
+    legend:{data:r.layers.names,textStyle:{color:'#8b93a3',fontSize:11},top:0,icon:'roundRect',itemWidth:14,itemHeight:3},
+    grid:{left:56,right:14,top:28,bottom:24},
+    xAxis:{type:'category',data:dates,...AXIS,axisLabel:{color:'#5b6373',fontSize:10}},
+    yAxis:{type:'value',scale:true,...AXIS,axisLabel:{color:'#5b6373',fontSize:10,formatter:v=>v.toFixed(1)}},
+    series:r.layers.names.map((n,i)=>({name:n,type:'line',data:r.layers.series[i],showSymbol:false,
+      lineStyle:{width:i===0?1.8:1.1,color:colors[i]},itemStyle:{color:colors[i]}})),
+    animation:false
+  },true);
+}
+
+function renderHoldings(r){
+  const h = r.holdings_latest||[];
+  document.getElementById('holdHint').textContent = r.meta.holdings_date?`调仓日 ${d2s(r.meta.holdings_date)} · 共 ${r.meta.top_n} 只(展示前20)`:'';
+  document.getElementById('holdTable').innerHTML =
+    `<tr><th>#</th><th>代码</th><th>名称</th><th>综合分</th><th>权重</th></tr>` +
+    h.slice(0,20).map((x,i)=>`<tr><td class="num">${i+1}</td><td class="num">${x.code}</td><td>${x.name||''}</td><td class="num ${cls(x.score)}">${x.score!=null?x.score.toFixed(3):''}</td><td class="num">${fmtPct(x.weight,2)}</td></tr>`).join('');
+}
+
+function renderParams(r){
+  const pm = r.meta;
+  document.getElementById('params').innerHTML = [
+    ['股票池', pm.universe],['调仓频率', pm.rebalance],['持仓数量', 'Top '+pm.top_n],
+    ['回测区间', `${pm.period_start} ~ ${pm.period_end}`],['成本假设', pm.cost_model],['成交规则', pm.fill_model||'T+1开盘'],
+  ].map(([k,v])=>`<div>${k} <b>${v}</b></div>`).join('');
+  document.getElementById('notes').innerHTML = (r.notes||[]).map(n=>`<li>${n}</li>`).join('');
+}
+
+function renderAll(){
+  const raw = REPORTS[cur];
+  const r = sliceView(raw);
+  renderPills(); renderCards(r); renderNav(r); renderAnnual(r); renderIC(r); renderLayers(r); renderHoldings(raw); renderParams(raw);
+  const inp = document.getElementById('viewStart');
+  if(inp){ inp.min = raw.nav.dates[0].slice(0,10); inp.max = raw.nav.dates[raw.nav.dates.length-1].slice(0,10); }
+}
+if (typeof REPORTS !== 'undefined' && REPORTS.length){ renderAll(); }
+else { document.getElementById('cards').innerHTML = '<div class="card">暂无数据:请先运行 export 生成 data.js</div>'; }
+</script>
+</body>
+</html>

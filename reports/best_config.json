@@ -1,0 +1,20 @@
+{
+ "best": {
+  "factors": [
+   "G1_turn20",
+   "G4_vratio",
+   "G3_amtshare",
+   "G10_idiomom"
+  ],
+  "weight": "equal",
+  "top_n": "5",
+  "freq": "M",
+  "annual": 0.2594,
+  "excess": 0.2468,
+  "sharpe": 0.771,
+  "mdd": -0.3919,
+  "sel_excess": 0.3021,
+  "oos_excess": 0.6554,
+  "oos_annual": 0.767
+ }
+}

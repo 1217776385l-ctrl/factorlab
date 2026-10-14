@@ -1,0 +1,83 @@
+[
+ {
+  "name": "A1_nightrev",
+  "ic_mean": 0.0372,
+  "icir": 0.56,
+  "t": 5.0,
+  "annual": -0.4412,
+  "sharpe": -0.94,
+  "mdd": -0.989,
+  "max_corr": 0.25,
+  "corr_with": "G9_ret20"
+ },
+ {
+  "name": "A2_intradayshare",
+  "ic_mean": 0.0504,
+  "icir": 0.37,
+  "t": 3.3,
+  "annual": 0.0572,
+  "sharpe": 0.22,
+  "mdd": -0.392,
+  "max_corr": 0.82,
+  "corr_with": "G9_ret20"
+ },
+ {
+  "name": "A3_limitfade",
+  "ic_mean": 0.0128,
+  "icir": 0.31,
+  "t": 2.7,
+  "annual": -0.0055,
+  "sharpe": -0.03,
+  "mdd": -0.287,
+  "max_corr": 0.23,
+  "corr_with": "G1_turn20"
+ },
+ {
+  "name": "A4_volconvex",
+  "ic": null
+ },
+ {
+  "name": "A5_volbeta",
+  "ic_mean": NaN,
+  "icir": 0.0,
+  "t": NaN,
+  "annual": -0.0156,
+  "sharpe": -0.08,
+  "mdd": -0.353,
+  "max_corr": NaN,
+  "corr_with": "—"
+ },
+ {
+  "name": "A6_skew",
+  "ic_mean": 0.0531,
+  "icir": 0.5,
+  "t": 4.4,
+  "annual": 0.0667,
+  "sharpe": 0.21,
+  "mdd": -0.523,
+  "max_corr": 0.55,
+  "corr_with": "G10_idiomom"
+ },
+ {
+  "name": "A7_crowd",
+  "ic_mean": 0.0788,
+  "icir": 0.45,
+  "t": 4.0,
+  "annual": 0.0894,
+  "sharpe": 0.39,
+  "mdd": -0.406,
+  "max_corr": 0.72,
+  "corr_with": "G10_idiomom"
+ },
+ {
+  "name": "A8_mombreak",
+  "ic_mean": 0.0311,
+  "icir": 0.24,
+  "t": 2.1,
+  "annual": 0.0247,
+  "sharpe": 0.09,
+  "mdd": -0.619,
+  "max_corr": 0.84,
+  "corr_with": "G9_ret20"
+ }
+]
